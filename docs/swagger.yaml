@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: Adoption Request List API
+  version: "1.0"
+paths:
+  /adoption-requests:
+    get:
+      summary: List adoption requests paginated
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+      responses:
+        '200':
+          description: List of adoption requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPage:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  totalRequests:
+                    type: integer
+                  requests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdoptionRequest'
+components:
+  schemas:
+    AdoptionRequest:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        petId:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - rejected
+        dateRequested:
+          type: string
+          format: date-time
