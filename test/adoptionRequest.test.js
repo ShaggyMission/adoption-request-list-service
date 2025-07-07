@@ -1,13 +1,19 @@
 const request = require('supertest');
-const app = require('../app');
-const connectDB = require('../config/db');
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const app = require('../app');
 const AdoptionRequest = require('../models/adoptionRequest.model');
 
+let mongoServer;
+
 beforeAll(async () => {
-  await connectDB();
-  await AdoptionRequest.deleteMany({});
-  // Insert some dummy data
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
   await AdoptionRequest.create([
     { userId: 'user1', petId: 'pet1', message: 'I love this dog' },
     { userId: 'user2', petId: 'pet2' },
@@ -16,7 +22,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.connection.close();
+  await mongoose.connection.dropDatabase();
+  await mongoose.disconnect();
+  await mongoServer.stop();
 });
 
 describe('GET /adoption-requests', () => {
