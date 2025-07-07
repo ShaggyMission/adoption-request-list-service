@@ -1,7 +1,7 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const app = require('../app');
+const app = require('../app'); // Asegúrate que exporte la app express
 const AdoptionRequest = require('../models/adoptionRequest.model');
 
 let mongoServer;
@@ -9,10 +9,8 @@ let mongoServer;
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(uri);
+  await AdoptionRequest.deleteMany({});
 
   await AdoptionRequest.create([
     { userId: 'user1', petId: 'pet1', message: 'I love this dog' },
@@ -22,14 +20,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.connection.dropDatabase();
   await mongoose.disconnect();
   await mongoServer.stop();
 });
 
-describe('GET /adoption-requests', () => {
+describe('GET /list/adoption-requests', () => {
   it('should list adoption requests paginated', async () => {
-    const res = await request(app).get('/adoption-requests?page=1');
+    const res = await request(app).get('/list/adoption-requests?page=1');
+
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('currentPage', 1);
     expect(res.body).toHaveProperty('totalPages');
@@ -39,7 +37,8 @@ describe('GET /adoption-requests', () => {
   });
 
   it('should default to page 1 if page query is invalid', async () => {
-    const res = await request(app).get('/adoption-requests?page=invalid');
+    const res = await request(app).get('/list/adoption-requests?page=invalid');
+
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('currentPage', 1);
   });
